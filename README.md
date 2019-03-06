@@ -1,2 +1,2 @@
 # Haskell
-Haskell Homework
+Homework for functional programming
