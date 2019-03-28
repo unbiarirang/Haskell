@@ -36,5 +36,5 @@ take n (Cons x xs) = Cons x (take (n-1) xs)
 
 drop :: Int -> IntList -> IntList
 drop 0 x           = x
-drop _ Nil         = error "invalid"
+drop _ Nil         = Nil -- error "invalid"
 drop n (Cons x xs) = drop (n-1) xs
