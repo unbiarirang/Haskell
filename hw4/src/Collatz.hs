@@ -7,5 +7,5 @@ collatzs x
 
 f :: Integer -> Integer
 f x
-    | x `mod` 2 == 0 = x `div` 2
-    | x `mod` 2 == 1 = 3*x + 1
+    | even x = x `div` 2
+    | odd x  = 3 * x + 1
