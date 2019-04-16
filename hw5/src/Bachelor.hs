@@ -13,3 +13,7 @@ bachelor = foldl1 xor
 -combine (x1:x2:xs) = (x1, x2) : combine xs
 -combine (x1:x2) = [(x1, 0)]
 -}
+
+rev :: [a] -> [a]
+rev [] = []
+rev (x:xs) = rev xs ++ [x]
