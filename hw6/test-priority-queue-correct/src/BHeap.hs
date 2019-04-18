@@ -1,5 +1,4 @@
 -- |An almost totally wrong Binomial Heap implementation of priority queue.
---
 -- However, the example properties (@prop_1_empty_is_empty, prop_2_findMin_the_only_element, prop_3_tautology@) in @test/Spec.hs@ are too weak to detect bugs from this implementation.
 --
 -- Write more, critical properties in @test/Spec.hs@ to detect bugs from this implementation AND more subtle bugs in other possible implementations!
