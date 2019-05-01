@@ -1,0 +1,182 @@
+%! compile with xelatex
+\documentclass[11pt, a4paper]{article}
+
+% fonts: Make sure you have SimSun and SimHei installed on your system
+\usepackage{xeCJK}
+\setCJKmainfont[BoldFont=SimHei]{SimSun}
+\setCJKfamilyfont{hei}{SimHei}
+\setCJKfamilyfont{kai}{KaiTi}
+\newcommand{\hei}{\CJKfamily{hei}}
+\newcommand{\kai}{\CJKfamily{kai}}
+
+% style
+\usepackage[top=2.54cm, bottom=2.54cm, left=3.18cm, right=3.18cm]{geometry}
+\usepackage{indentfirst}
+\linespread{1.5}
+\parindent 2em
+\punctstyle{quanjiao}
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\newtheorem{lemma}{引理}
+\usepackage[inference]{semantic} % for writing inference rules
+\setnamespace{0pt}
+
+\usepackage{enumitem}
+\setlist{nolistsep}
+
+\usepackage{empheq}
+\newcommand{\boxedeq}[1]{\begin{empheq}[box=\fbox]{align*}#1\end{empheq}}
+
+% A bunch of handy commands
+\let\t\texttt
+\let\emptyset\varnothing
+\let\to\rightarrow
+\let\reduce\Rightarrow
+\newcommand{\reduceM}{\Rightarrow^{*}}
+\let\defas\triangleq
+\newcommand{\Bool}{\t{Bool}}
+\newcommand{\kword}[1]{{\color{blue} \textsf{#1}}}
+\newcommand{\True}{\kword{true}}
+\newcommand{\False}{\kword{false}}
+\newcommand{\If}{\kword{if}}
+\newcommand{\Then}{\kword{then}}
+\newcommand{\Else}{\kword{else}}
+
+\title{\textbf{THU Haskell 2019 Homework 08}}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+{\hei 注意：本次作业均为非编程题，请直接在网络学堂提交一份 PDF。前两题为必做题，这两题全部做对即得满分100分。
+后两题为选做题，每题25分，视回答情况酌情加分。}
+
+\section{$\lambda_\to$ 扩展}
+
+考虑一个对 $\lambda_\to$ 进行了布尔类型扩展的演算，名为$\lambda_\to^{\Bool}$，其语法定义如下：
+\begin{align*}
+    \text{Term}~t &::= x & \text{(variable)} \\
+    &\mid (t_1~t_2) & \text{($\lambda$-application)} \\
+    &\mid (\lambda x:T.t) & \text{($\lambda$-abstraction)} \\
+    &\mid \True & \text{(Boolean value true)} \\
+    &\mid \False & \text{(Boolean value false)} \\
+    &\mid (\If~t_1~\Then~t_2~\Else~t_3) & \text{(if expression)} \\
+    \text{(Simple) type}~T &::= \Bool & \text{(Boolean type is the only base type)} \\
+    &\mid T_1\to T_2 & \text{(arrow type)}
+\end{align*}
+
+注意这里我们新增了三种和布尔相关的项，并人为限制了基本类型（base type）只包含 $\Bool$。优先级和结合性规则同讲义。
+
+新增如下 typing rules：
+\begin{align*}
+    & \inference[T-True]{}{\Gamma \vdash \True:\Bool} \\
+    & \inference[T-False]{}{\Gamma \vdash \False:\Bool} \\
+    & \inference[T-If]{\Gamma \vdash t_1:\Bool & \Gamma \vdash t_2:T & \Gamma \vdash t_3:T}{\Gamma \vdash (\If~t_1~\Then~t_2~\Else~t_3):T}
+\end{align*}
+
+新增如下 evaluation rules：
+\begin{align*}
+    &\inference[E-If]{t_1 \reduce t_1'}{(\If~t_1~\Then~t_2~\Else~t_3) \reduce (\If~t_1'~\Then~t_2~\Else~t_3)} \\
+    &\inference[E-IfTrue]{}{(\If~\True~\Then~t_2~\Else~t_3) \reduce t_2} \\
+    &\inference[E-IfFalse]{}{(\If~\False~\Then~t_2~\Else~t_3) \reduce t_3}
+\end{align*}
+
+{\hei 问题：}
+
+1.1\quad 设 $t_0$ 归约到 $\False$ 需要 $k$ 步，不妨记作 $t_0 \reduce_k \False$，那么将 
+$$\If~t_0~\Then~((\lambda x:\Bool.x)~t_0)~\Else~((\lambda x:\Bool.\If~x~\Then~\False~\Else~\True)~t_0)$$
+归约到 normal form 需要多少步？请写出推导序列（可直接用记号 $t_0 \reduce_k \False$），或者画出证明树来表示归约过程。
+
+1.2\quad 用画证明树的方法（要求标上每一步所使用的规则的名称）证明以下 typing judgment 是成立的：
+$$\emptyset, f:\Bool \to \Bool \vdash \lambda x:\Bool.f~(\If~x~\Then~\False~\Else~x) : \Bool \to \Bool$$
+
+1.3\quad 使得 $\Gamma \vdash f~x~y:\Bool$ 成立的 typing context $\Gamma$ 是什么？
+请仿照讲义 lambda-calculi-full.pdf 第 61 页对 $\mathbf{S}$ 组合子进行类型推导方法，确定此 $\Gamma$ 最一般化的形式。
+{\kai 提示：可以先设 $\Gamma=\emptyset,f:T_f,x:T_x,y:T_y$，其中 $T_f$, $T_x$ 和 $T_y$ 为类型变量，然后找出它们之间的关系，列出类型等式约束，并求出最一般化的解。}
+
+\section{类型推断}
+
+讲义 lambda-calculi-full.pdf 第 61 -- 70 页介绍的 Hindley-Milner 类型推导算法适用于 System F。
+而 Haskell 语言的基础就是 System F。因此，我们可以运用该类型推导算法的思想，对 Haskell 的表达式进行类型推导。
+请手工推导出以下 Haskell 表达式最具一般性的类型，要求简要说明推理过程，即，至少要说明你列了哪些有关类型约束的等式以及每个等式的依据（由于我们在 Haskell 中，请使用 \t{e :: t} 形式的 typing judgment）：
+
+2.1\quad \t{(\$).(\$)}
+
+{\kai 提示：\t{(\$) (\$)} 的类型与 \t{(\$).(\$)} 一致，尝试推断 \t{(\$) (\$)} 的类型可以启发你完成本题。求出类型后想一想：把其中的类型变量替换为原子命题，把 \t{->} 替换为逻辑蕴含，这个命题公式是有效式吗？}
+
+2.2\quad \t{(.)\$(.)}
+
+{\kai 提示：\t{(.)\$(.)} 的类型与 \t{(.) (.)} 一致，尝试推断 \t{(.) (.)} 的类型可以启发你完成本题。求出类型后想一想：把其中的类型变量替换为原子命题，把 \t{->} 替换为逻辑蕴含，这个命题公式是有效式吗？}
+
+2.3\quad \t{\textbackslash c f -> if c then map f else tail}
+
+\section{扩展系统的元性质判定（选做题）}
+
+{\kai 提示：本题工作量小，但是有一定的思维难度。根据给出的判定结果是否正确来评分。}
+
+不难证明，$\lambda_\to^{\Bool}$ 和 $\lambda_\to$ 一样，也满足如下三个元性质：
+
+\begin{lemma}
+    (Determinism of reduction) If $t \reduce t_1$ and $t \reduce t_2$, then $t_1 = t_2$.
+\end{lemma}
+
+\begin{lemma}
+    (Progress) For any term $t$ and type $T$, if $\vdash t : T$,
+    then either $t$ is a value, or $t \reduce t'$ for some term $t'$.
+\end{lemma}
+
+\begin{lemma}
+    (Preservation) If $\vdash t:T$ and $t \reduce t'$, then $\vdash t':T$.
+\end{lemma}
+
+但是，在 $\lambda_\to^{\Bool}$ 的基础上做一些扩展，那么这三个元性质就不一定成立了。请分别考虑以下几种不同的扩展方法（都是在 $\lambda_\to^{\Bool}$ 上扩展，这几种扩展之间是正交的），判断三个元性质中，哪些变得不成立了。对于不成立的性质，请各举出一个具体的反例。对于仍然成立的性质，你无需给出证明。
+
+3.1\quad 新增项 \t{foo}，以及 evaluation rules
+\begin{align*}
+    & \inference[E-Foo1]{}{(\lambda x:\Bool.x) \reduce \t{foo}} \\
+    & \inference[E-Foo2]{}{\t{foo} \reduce \True}
+\end{align*}
+
+3.2\quad 去掉 evaluation rule E-App1
+
+3.3\quad 新增 typing rule
+$$
+    \inference[T-FunnyApp]{\Gamma\vdash t_1:\Bool\to\Bool\to\Bool & \Gamma\vdash t_2:\Bool}
+        {\Gamma\vdash (t_1~t_2):\Bool}
+$$
+
+3.4\quad 新增 typing rule
+$$
+    \inference[T-FunnyAbs]{}{\vdash (\lambda x:\Bool.t) : \Bool}
+$$
+
+3.5\quad 新增 typing rule
+$$
+    \inference[T-FunnyApp']{\Gamma\vdash t_1:\Bool & \Gamma\vdash t_2:\Bool}{\Gamma\vdash (t_1~t_2):\Bool}
+$$
+
+\section{System F 的元性质证明（选做题）}
+
+{\kai 提示：本题工作量较大，但只要按部就班地开展证明也不难。根据证明的完整性评分。}
+
+与 $\lambda_\to$ 类似，$F$ 也具有 progress 和 preservation 的元性质：
+
+\begin{lemma}
+    ($F$-progress) For any term $t$ and type $T$, if $\vdash t : T$,
+    then either $t$ is a value, or $t \reduce t'$ for some term $t'$.
+\end{lemma}
+
+\begin{lemma}
+    ($F$-preservation) If $\vdash t:T$ and $t \reduce t'$, then $\vdash t':T$.
+\end{lemma}
+
+请先阅读 \textit{Types and Programming Languages} 定理 9.3.5 ($\lambda_\to$-progress) 以及引理 9.3.4 的证明，还有定理 9.3.9 ($\lambda_\to$-preservation) 的证明，仿照该方法证明 $F$ 满足上述两个元性质。尽你所能给出所有必要的证明细节。注：你可以采用不同于讲义中的符号系统，但请在证明之前给出所有要用到的定义和规则。
+
+\end{document}
